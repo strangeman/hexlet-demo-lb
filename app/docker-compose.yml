@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  service_a:
+    image: strangeman/demo-service-a:0.0.1
+    build: ./service_a
+    ports:
+      - 5000:5000
+    deploy:
+      replicas: 5
+
+  service_b:
+    image: strangeman/demo-service-b:0.0.1
+    build: ./service_b
+    ports:
+      - 5001:5000
+    deploy:
+      replicas: 5

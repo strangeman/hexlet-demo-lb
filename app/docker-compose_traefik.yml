@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  service_a:
+    image: strangeman/demo-service-a:0.0.1
+    build: ./service_a
+    ports:
+      - 5000:5000
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.service_a.rule=Host(`service-a.local`)"
+        - "traefik.http.routers.service_a.entrypoints=web"
+        - "traefik.http.services.service_a.loadbalancer.server.port=5000" # it seems you always need to give traefik a port so it 'notices' the service
+        - "traefik.docker.network=demo_default"
+        - "traefik.http.services.service_a.loadbalancer.sticky.cookie.name=my_cookie"
+
+  service_b:
+    image: strangeman/demo-service-b:0.0.1
+    build: ./service_b
+    ports:
+      - 5001:5000
+    deploy:
+      replicas: 5
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.service_b.rule=Host(`service-b.local`)"
+        - "traefik.http.routers.service_b.entrypoints=web"
+        - "traefik.http.services.service_b.loadbalancer.server.port=5000" # it seems you always need to give traefik a port so it 'notices' the service
+        - "traefik.docker.network=demo_default"
+        - "traefik.http.services.service_b.loadbalancer.sticky.cookie.name=my_cookie_b"
+
+
+  traefik:
+    # The official v2 Traefik docker image
+    image: traefik:v2.5
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --api.dashboard=true --providers.docker --providers.docker.swarmMode=true --entrypoints.web.address=:80
+    # Swarm API is only exposed on the manager nodes
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
