@@ -1,4 +1,4 @@
-# Hexlet Swarm Demo
+# Hexlet Load Balancing Demo
 
 ## Пререквизиты
 
